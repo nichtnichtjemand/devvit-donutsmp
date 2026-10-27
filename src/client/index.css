@@ -57,14 +57,18 @@
     --color-lavender-900: #f9faff;
 }
 
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-    /* Für Chrome, Safari und Opera */
+html,
+body,
+* {
+    -ms-overflow-style: none;
+    /* IE / Edge */
+    scrollbar-width: none;
+    /* Firefox */
 }
 
-.no-scrollbar {
-    -ms-overflow-style: none;
-    /* Für IE und Edge */
-    scrollbar-width: none;
-    /* Für Firefox */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera, WebKit (Devvit WebViews) */
 }

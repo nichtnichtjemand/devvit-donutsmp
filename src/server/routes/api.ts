@@ -1,52 +1,208 @@
+
 import { Hono } from 'hono';
 import { redis } from '@devvit/web/server';
 
 export const api = new Hono();
 
-api.post('/player', async (c) => {
-  const { username, note, rank } = await c.req.json();
+type EntryType = 'vouch' | 'report';
 
-  if (!username) {
-    return c.json({ error: 'Benutzername ist erforderlich' }, 400);
+interface PlayerEntry {
+  username: string;
+  note: string;
+  type: EntryType;
+  updatedAt: string;
+}
+
+function normalizeUsername(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null;
   }
 
-  const cleanUsername = username.toLowerCase();
+  const username = value.trim().replace(/^u\//i, '');
 
-  const playerData = {
+  if (!/^[A-Za-z0-9_]{1,20}$/.test(username)) {
+    return null;
+  }
+
+  return username;
+}
+
+function parseEntry(value: string): PlayerEntry | null {
+  try {
+    const parsed: unknown = JSON.parse(value);
+
+    if (!parsed || typeof parsed !== 'object') {
+      return null;
+    }
+
+    const item = parsed as Record<string, unknown>;
+    const username = normalizeUsername(item.username);
+
+    if (!username || typeof item.note !== 'string') {
+      return null;
+    }
+
+    if (item.type !== 'vouch' && item.type !== 'report') {
+      return null;
+    }
+
+    return {
+      username,
+      note: item.note,
+      type: item.type,
+      updatedAt:
+        typeof item.updatedAt === 'string'
+          ? item.updatedAt
+          : '',
+    };
+  } catch {
+    return null;
+  }
+}
+
+// Einen Spieler erstellen oder aktualisieren
+api.post('/player', async (c) => {
+  let body: unknown;
+
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json(
+      { error: 'Invalid JSON-Request.' },
+      400
+    );
+  }
+
+  if (!body || typeof body !== 'object') {
+    return c.json(
+      { error: 'Invalid Request.' },
+      400
+    );
+  }
+
+  const input = body as Record<string, unknown>;
+  const username = normalizeUsername(input.username);
+
+  if (!username) {
+    return c.json(
+      { error: 'Enter a valid reddit username.' },
+      400
+    );
+  }
+
+  if (
+    typeof input.note !== 'string' ||
+    !input.note.trim()
+  ) {
+    return c.json(
+      { error: 'You need to add a description!' },
+      400
+    );
+  }
+
+  const note = input.note.trim();
+
+  if (note.length > 2000) {
+    return c.json(
+      { error: 'The Description must be at most 2000 characters long.' },
+      400
+    );
+  }
+
+  if (input.type !== 'vouch' && input.type !== 'report') {
+    return c.json(
+      { error: 'Type must be vouch or report.' },
+      400
+    );
+  }
+
+  const playerData: PlayerEntry = {
     username,
     note,
-    rank,
+    type: input.type,
     updatedAt: new Date().toISOString(),
   };
 
-await redis.hSet('players', {
-    [cleanUsername]: JSON.stringify(playerData),
-  });
+  try {
+    await redis.hSet('players', {
+      [username.toLowerCase()]: JSON.stringify(playerData),
+    });
 
-  return c.json({ success: true, message: `Eintrag für ${username} gespeichert!` });
+    return c.json({
+      success: true,
+      message: `Saved Entry for u/${username}.`,
+      player: playerData,
+    });
+  } catch {
+    return c.json(
+      { error: 'Error saving .' },
+      500
+    );
+  }
 });
+
 api.get('/player/:username', async (c) => {
-  const username = c.req.param('username').toLowerCase();
+  const username = normalizeUsername(
+    c.req.param('username')
+  );
 
-  // Einzelnen Spieler direkt aus dem Hash 'players' holen
-  const data = await redis.hGet('players', username);
-
-  if (!data) {
-    return c.json({ error: 'Spieler nicht gefunden' }, 404);
+  if (!username) {
+    return c.json(
+      { error: 'Invalid Username.' },
+      400
+    );
   }
 
-  return c.json(JSON.parse(data));
+  try {
+    const data = await redis.hGet(
+      'players',
+      username.toLowerCase()
+    );
+
+    if (!data) {
+      return c.json(
+        { error: 'Player not found.' },
+        404
+      );
+    }
+
+    const player = parseEntry(data);
+
+    if (!player) {
+      return c.json(
+        { error: 'The stored entry is invalid.' },
+        500
+      );
+    }
+
+    return c.json(player);
+  } catch {
+    return c.json(
+      { error: 'Error loading Player.' },
+      500
+    );
+  }
 });
 
+// Alle Spieler abrufen
 api.get('/players', async (c) => {
-  // Direktes Verwenden von redis.get
-  const data = await redis.hGetAll('players');
+  try {
+    const data = await redis.hGetAll('players');
 
-  const players = Object.values(data).map((item) => JSON.parse(item));
+    const players = Object.values(data ?? {})
+      .map((item) => parseEntry(item))
+      .filter(
+        (player): player is PlayerEntry => player !== null
+      )
+      .sort((a, b) =>
+        a.username.localeCompare(b.username)
+      );
 
-  if (!data) {
-    return c.json({ error: 'Unknown Error' }, 404);
+    return c.json(players);
+  } catch {
+    return c.json(
+      { error: 'Error loading Player List.' },
+      500
+    );
   }
-
-  return c.json(players);
 });
