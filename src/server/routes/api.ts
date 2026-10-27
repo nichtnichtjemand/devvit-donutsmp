@@ -1,4 +1,3 @@
-
 import { Hono } from 'hono';
 import { redis } from '@devvit/web/server';
 
@@ -66,8 +65,8 @@ function parseEntry(
 }
 
 // POST /player
-// Erstellt einen neuen Vouch oder Report.
-// Jeder Eintrag bekommt einen eigenen Redis-Schlüssel.
+// Creates a new vouch or report.
+// Each entry gets its own Redis key.
 api.post('/player', async (c) => {
   let body: unknown;
 
@@ -75,14 +74,14 @@ api.post('/player', async (c) => {
     body = await c.req.json();
   } catch {
     return c.json(
-      { error: 'Ungültiger JSON-Request.' },
+      { error: 'Invalid JSON request.' },
       400
     );
   }
 
   if (!body || typeof body !== 'object') {
     return c.json(
-      { error: 'Ungültige Anfrage.' },
+      { error: 'Invalid request.' },
       400
     );
   }
@@ -92,7 +91,7 @@ api.post('/player', async (c) => {
 
   if (!username) {
     return c.json(
-      { error: 'Bitte gib einen gültigen Reddit-Benutzernamen ein.' },
+      { error: 'Enter a valid Reddit username.' },
       400
     );
   }
@@ -102,7 +101,7 @@ api.post('/player', async (c) => {
     !input.note.trim()
   ) {
     return c.json(
-      { error: 'Eine Beschreibung ist erforderlich.' },
+      { error: 'A description is required.' },
       400
     );
   }
@@ -111,14 +110,14 @@ api.post('/player', async (c) => {
 
   if (note.length > 2000) {
     return c.json(
-      { error: 'Die Beschreibung darf höchstens 2000 Zeichen lang sein.' },
+      { error: 'The description must be at most 2000 characters long.' },
       400
     );
   }
 
   if (input.type !== 'vouch' && input.type !== 'report') {
     return c.json(
-      { error: 'Der Typ muss vouch oder report sein.' },
+      { error: 'The type must be either vouch or report.' },
       400
     );
   }
@@ -141,21 +140,21 @@ api.post('/player', async (c) => {
     return c.json(
       {
         success: true,
-        message: `Eintrag für u/${username} gespeichert.`,
+        message: `Entry for u/${username} saved.`,
         player: playerData,
       },
       201
     );
   } catch {
     return c.json(
-      { error: 'Fehler beim Speichern in Redis.' },
+      { error: 'Error while saving to Redis.' },
       500
     );
   }
 });
 
 // GET /player/:username
-// Gibt ALLE Vouches und Reports eines Spielers zurück.
+// Returns ALL vouches and reports for a player.
 api.get('/player/:username', async (c) => {
   const username = normalizeUsername(
     c.req.param('username')
@@ -163,7 +162,7 @@ api.get('/player/:username', async (c) => {
 
   if (!username) {
     return c.json(
-      { error: 'Ungültiger Reddit-Benutzername.' },
+      { error: 'Invalid Reddit username.' },
       400
     );
   }
@@ -188,7 +187,7 @@ api.get('/player/:username', async (c) => {
 
     if (players.length === 0) {
       return c.json(
-        { error: 'Keine Einträge für diesen Spieler gefunden.' },
+        { error: 'No entries found for this player.' },
         404
       );
     }
@@ -200,14 +199,14 @@ api.get('/player/:username', async (c) => {
     });
   } catch {
     return c.json(
-      { error: 'Fehler beim Abrufen der Spielereinträge.' },
+      { error: 'Error while fetching player entries.' },
       500
     );
   }
 });
 
 // GET /players
-// Gibt alle Vouches und Reports zurück.
+// Returns all vouches and reports.
 api.get('/players', async (c) => {
   try {
     const data = await redis.hGetAll('players');
@@ -225,7 +224,7 @@ api.get('/players', async (c) => {
     return c.json(players);
   } catch {
     return c.json(
-      { error: 'Fehler beim Laden der Spielerliste.' },
+      { error: 'Error while loading the player list.' },
       500
     );
   }
