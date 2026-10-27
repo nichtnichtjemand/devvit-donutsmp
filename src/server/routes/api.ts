@@ -1,93 +1,52 @@
 import { Hono } from 'hono';
-import { context, redis, reddit } from '@devvit/web/server';
-import type {
-  DecrementResponse,
-  IncrementResponse,
-  InitResponse,
-} from '../../shared/api';
-
-type ErrorResponse = {
-  status: 'error';
-  message: string;
-};
+import { redis } from '@devvit/web/server';
 
 export const api = new Hono();
 
-api.get('/init', async (c) => {
-  const { postId } = context;
+api.post('/player', async (c) => {
+  const { username, note, rank } = await c.req.json();
 
-  if (!postId) {
-    console.error('API Init Error: postId not found in devvit context');
-    return c.json<ErrorResponse>(
-      {
-        status: 'error',
-        message: 'postId is required but missing from context',
-      },
-      400
-    );
+  if (!username) {
+    return c.json({ error: 'Benutzername ist erforderlich' }, 400);
   }
 
-  try {
-    const [count, username] = await Promise.all([
-      redis.get('count'),
-      reddit.getCurrentUsername(),
-    ]);
+  const cleanUsername = username.toLowerCase();
 
-    return c.json<InitResponse>({
-      type: 'init',
-      postId: postId,
-      count: count ? parseInt(count) : 0,
-      username: username ?? 'anonymous',
-    });
-  } catch (error) {
-    console.error(`API Init Error for post ${postId}:`, error);
-    let errorMessage = 'Unknown error during initialization';
-    if (error instanceof Error) {
-      errorMessage = `Initialization failed: ${error.message}`;
-    }
-    return c.json<ErrorResponse>(
-      { status: 'error', message: errorMessage },
-      400
-    );
+  const playerData = {
+    username,
+    note,
+    rank,
+    updatedAt: new Date().toISOString(),
+  };
+
+await redis.hSet('players', {
+    [cleanUsername]: JSON.stringify(playerData),
+  });
+
+  return c.json({ success: true, message: `Eintrag für ${username} gespeichert!` });
+});
+api.get('/player/:username', async (c) => {
+  const username = c.req.param('username').toLowerCase();
+
+  // Einzelnen Spieler direkt aus dem Hash 'players' holen
+  const data = await redis.hGet('players', username);
+
+  if (!data) {
+    return c.json({ error: 'Spieler nicht gefunden' }, 404);
   }
+
+  return c.json(JSON.parse(data));
 });
 
-api.post('/increment', async (c) => {
-  const { postId } = context;
-  if (!postId) {
-    return c.json<ErrorResponse>(
-      {
-        status: 'error',
-        message: 'postId is required',
-      },
-      400
-    );
+api.get('/players', async (c) => {
+  // Direktes Verwenden von redis.get
+  const data = await redis.hGetAll('players');
+
+  const players = Object.values(data).map((item) => JSON.parse(item));
+
+  if (!data) {
+    return c.json({ error: 'Unknown Error' }, 404);
   }
 
-  const count = await redis.incrBy('count', 1);
-  return c.json<IncrementResponse>({
-    count,
-    postId,
-    type: 'increment',
-  });
-});
-
-api.post('/decrement', async (c) => {
-  const { postId } = context;
-  if (!postId) {
-    return c.json<ErrorResponse>(
-      {
-        status: 'error',
-        message: 'postId is required',
-      },
-      400
-    );
-  }
-
-  const count = await redis.incrBy('count', -1);
-  return c.json<DecrementResponse>({
-    count,
-    postId,
-    type: 'decrement',
-  });
+  return c.json(players);
 });

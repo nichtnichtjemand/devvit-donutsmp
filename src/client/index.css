@@ -1,1 +1,70 @@
-@import 'tailwindcss';
+@import "tailwindcss";
+
+@theme {
+    --color-lavender-grey-DEFAULT: #8e9aaf;
+    --color-lavender-grey-100: #1a1e25;
+    --color-lavender-grey-200: #343c4a;
+    --color-lavender-grey-300: #4f5b6f;
+    --color-lavender-grey-400: #697994;
+    --color-lavender-grey-500: #8e9aaf;
+    --color-lavender-grey-600: #a4aebf;
+    --color-lavender-grey-700: #bbc2cf;
+    --color-lavender-grey-800: #d2d6df;
+    --color-lavender-grey-900: #e8ebef;
+
+    --color-thistle-DEFAULT: #cbc0d3;
+    --color-thistle-100: #292130;
+    --color-thistle-200: #53425f;
+    --color-thistle-300: #7c638f;
+    --color-thistle-400: #a490b2;
+    --color-thistle-500: #cbc0d3;
+    --color-thistle-600: #d5ccdc;
+    --color-thistle-700: #e0d9e5;
+    --color-thistle-800: #eae6ed;
+    --color-thistle-900: #f5f2f6;
+
+    --color-soft-blush-DEFAULT: #efd3d7;
+    --color-soft-blush-100: #42181e;
+    --color-soft-blush-200: #84303c;
+    --color-soft-blush-300: #bf4e5f;
+    --color-soft-blush-400: #d7909b;
+    --color-soft-blush-500: #efd3d7;
+    --color-soft-blush-600: #f2dbde;
+    --color-soft-blush-700: #f5e4e7;
+    --color-soft-blush-800: #f9edef;
+    --color-soft-blush-900: #fcf6f7;
+
+    --color-lavender-veil-DEFAULT: #feeafa;
+    --color-lavender-veil-100: #5e044c;
+    --color-lavender-veil-200: #bb0997;
+    --color-lavender-veil-300: #f530ce;
+    --color-lavender-veil-400: #fa8ee4;
+    --color-lavender-veil-500: #feeafa;
+    --color-lavender-veil-600: #feeffb;
+    --color-lavender-veil-700: #fef3fc;
+    --color-lavender-veil-800: #fff7fd;
+    --color-lavender-veil-900: #fffbfe;
+
+    --color-lavender-DEFAULT: #dee2ff;
+    --color-lavender-100: #000b60;
+    --color-lavender-200: #0016c0;
+    --color-lavender-300: #213bff;
+    --color-lavender-400: #818fff;
+    --color-lavender-500: #dee2ff;
+    --color-lavender-600: #e7e9ff;
+    --color-lavender-700: #edefff;
+    --color-lavender-800: #f3f4ff;
+    --color-lavender-900: #f9faff;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+    /* Für Chrome, Safari und Opera */
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    /* Für IE und Edge */
+    scrollbar-width: none;
+    /* Für Firefox */
+}
