@@ -7,6 +7,7 @@ export const api = new Hono();
 type EntryType = 'vouch' | 'report';
 
 interface PlayerEntry {
+  id: string;
   username: string;
   note: string;
   type: EntryType;
@@ -27,32 +28,36 @@ function normalizeUsername(value: unknown): string | null {
   return username;
 }
 
-function parseEntry(value: string): PlayerEntry | null {
+function parseEntry(
+  value: string,
+  id: string
+): PlayerEntry | null {
   try {
-    const parsed: unknown = JSON.parse(value);
+    const item: unknown = JSON.parse(value);
 
-    if (!parsed || typeof parsed !== 'object') {
+    if (!item || typeof item !== 'object') {
       return null;
     }
 
-    const item = parsed as Record<string, unknown>;
-    const username = normalizeUsername(item.username);
+    const data = item as Record<string, unknown>;
+    const username = normalizeUsername(data.username);
 
-    if (!username || typeof item.note !== 'string') {
-      return null;
-    }
-
-    if (item.type !== 'vouch' && item.type !== 'report') {
+    if (
+      !username ||
+      typeof data.note !== 'string' ||
+      (data.type !== 'vouch' && data.type !== 'report')
+    ) {
       return null;
     }
 
     return {
+      id: typeof data.id === 'string' ? data.id : id,
       username,
-      note: item.note,
-      type: item.type,
+      note: data.note,
+      type: data.type,
       updatedAt:
-        typeof item.updatedAt === 'string'
-          ? item.updatedAt
+        typeof data.updatedAt === 'string'
+          ? data.updatedAt
           : '',
     };
   } catch {
@@ -60,7 +65,9 @@ function parseEntry(value: string): PlayerEntry | null {
   }
 }
 
-// Einen Spieler erstellen oder aktualisieren
+// POST /player
+// Erstellt einen neuen Vouch oder Report.
+// Jeder Eintrag bekommt einen eigenen Redis-Schlüssel.
 api.post('/player', async (c) => {
   let body: unknown;
 
@@ -68,14 +75,14 @@ api.post('/player', async (c) => {
     body = await c.req.json();
   } catch {
     return c.json(
-      { error: 'Invalid JSON-Request.' },
+      { error: 'Ungültiger JSON-Request.' },
       400
     );
   }
 
   if (!body || typeof body !== 'object') {
     return c.json(
-      { error: 'Invalid Request.' },
+      { error: 'Ungültige Anfrage.' },
       400
     );
   }
@@ -85,7 +92,7 @@ api.post('/player', async (c) => {
 
   if (!username) {
     return c.json(
-      { error: 'Enter a valid reddit username.' },
+      { error: 'Bitte gib einen gültigen Reddit-Benutzernamen ein.' },
       400
     );
   }
@@ -95,7 +102,7 @@ api.post('/player', async (c) => {
     !input.note.trim()
   ) {
     return c.json(
-      { error: 'You need to add a description!' },
+      { error: 'Eine Beschreibung ist erforderlich.' },
       400
     );
   }
@@ -104,19 +111,22 @@ api.post('/player', async (c) => {
 
   if (note.length > 2000) {
     return c.json(
-      { error: 'The Description must be at most 2000 characters long.' },
+      { error: 'Die Beschreibung darf höchstens 2000 Zeichen lang sein.' },
       400
     );
   }
 
   if (input.type !== 'vouch' && input.type !== 'report') {
     return c.json(
-      { error: 'Type must be vouch or report.' },
+      { error: 'Der Typ muss vouch oder report sein.' },
       400
     );
   }
 
+  const id = crypto.randomUUID();
+
   const playerData: PlayerEntry = {
+    id,
     username,
     note,
     type: input.type,
@@ -125,22 +135,27 @@ api.post('/player', async (c) => {
 
   try {
     await redis.hSet('players', {
-      [username.toLowerCase()]: JSON.stringify(playerData),
+      [`entry:${id}`]: JSON.stringify(playerData),
     });
 
-    return c.json({
-      success: true,
-      message: `Saved Entry for u/${username}.`,
-      player: playerData,
-    });
+    return c.json(
+      {
+        success: true,
+        message: `Eintrag für u/${username} gespeichert.`,
+        player: playerData,
+      },
+      201
+    );
   } catch {
     return c.json(
-      { error: 'Error saving .' },
+      { error: 'Fehler beim Speichern in Redis.' },
       500
     );
   }
 });
 
+// GET /player/:username
+// Gibt ALLE Vouches und Reports eines Spielers zurück.
 api.get('/player/:username', async (c) => {
   const username = normalizeUsername(
     c.req.param('username')
@@ -148,60 +163,69 @@ api.get('/player/:username', async (c) => {
 
   if (!username) {
     return c.json(
-      { error: 'Invalid Username.' },
+      { error: 'Ungültiger Reddit-Benutzername.' },
       400
     );
   }
 
   try {
-    const data = await redis.hGet(
-      'players',
-      username.toLowerCase()
-    );
+    const data = await redis.hGetAll('players');
 
-    if (!data) {
+    const players = Object.entries(data ?? {})
+      .filter(([key]) => key.startsWith('entry:'))
+      .map(([key, value]) => parseEntry(value, key))
+      .filter(
+        (player): player is PlayerEntry => player !== null
+      )
+      .filter(
+        (player) =>
+          player.username.toLowerCase() ===
+          username.toLowerCase()
+      )
+      .sort((a, b) =>
+        b.updatedAt.localeCompare(a.updatedAt)
+      );
+
+    if (players.length === 0) {
       return c.json(
-        { error: 'Player not found.' },
+        { error: 'Keine Einträge für diesen Spieler gefunden.' },
         404
       );
     }
 
-    const player = parseEntry(data);
-
-    if (!player) {
-      return c.json(
-        { error: 'The stored entry is invalid.' },
-        500
-      );
-    }
-
-    return c.json(player);
+    return c.json({
+      username,
+      count: players.length,
+      entries: players,
+    });
   } catch {
     return c.json(
-      { error: 'Error loading Player.' },
+      { error: 'Fehler beim Abrufen der Spielereinträge.' },
       500
     );
   }
 });
 
-// Alle Spieler abrufen
+// GET /players
+// Gibt alle Vouches und Reports zurück.
 api.get('/players', async (c) => {
   try {
     const data = await redis.hGetAll('players');
 
-    const players = Object.values(data ?? {})
-      .map((item) => parseEntry(item))
+    const players = Object.entries(data ?? {})
+      .filter(([key]) => key.startsWith('entry:'))
+      .map(([key, value]) => parseEntry(value, key))
       .filter(
         (player): player is PlayerEntry => player !== null
       )
       .sort((a, b) =>
-        a.username.localeCompare(b.username)
+        b.updatedAt.localeCompare(a.updatedAt)
       );
 
     return c.json(players);
   } catch {
     return c.json(
-      { error: 'Error loading Player List.' },
+      { error: 'Fehler beim Laden der Spielerliste.' },
       500
     );
   }
