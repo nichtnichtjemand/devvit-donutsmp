@@ -55,6 +55,10 @@
     --color-lavender-700: #edefff;
     --color-lavender-800: #f3f4ff;
     --color-lavender-900: #f9faff;
+
+
+    --color-green-DEFAULT: #31684f;
+    --color-green-100: #328a5b;
 }
 
 html,
@@ -72,6 +76,7 @@ body::-webkit-scrollbar,
     display: none;
     /* Chrome, Safari, Opera, WebKit (Devvit WebViews) */
 }
+
 
 
 @keyframes fadeIn {

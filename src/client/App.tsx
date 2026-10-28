@@ -1,4 +1,3 @@
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 
@@ -39,7 +38,6 @@ export default function App() {
 
       const data: unknown = await response.json();
 
-      // Support both an array response and { players: [...] }.
       let entries: unknown[] = [];
 
       if (Array.isArray(data)) {
@@ -192,17 +190,15 @@ export default function App() {
       <div className="mx-auto max-w-5xl">
         {/* Header */}
         <header className="mb-10 text-center">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-lavender-grey-300/50 bg-lavender-grey-200 px-4 py-2 text-sm font-medium text-lavender-grey-700">
 
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+            Player <span className="text-lavender-500">Vouches</span>
+          </h1>
 
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              Player <span className="text-lavender-500">Vouches</span>
-            </h1>
-
-            <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-lavender-grey-600 sm:text-lg">
-              Help the community recognize trustworthy players and report
-              suspicious behavior. Share your experiences with others.
-            </p>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-lavender-grey-600 sm:text-lg">
+            Help the community recognize trustworthy players and report
+            suspicious behavior. Share your experiences with others.
+          </p>
         </header>
 
         {/* Statistics */}
@@ -213,21 +209,18 @@ export default function App() {
           <StatCard
             label="Total entries"
             value={stats.total}
-            symbol="✦"
             accent="lavender"
           />
 
           <StatCard
             label="Vouches"
             value={stats.vouches}
-            symbol="✓"
             accent="thistle"
           />
 
           <StatCard
             label="Reports"
             value={stats.reports}
-            symbol="!"
             accent="blush"
           />
         </section>
@@ -487,33 +480,36 @@ export default function App() {
                 return (
                   <article
                     key={player.id}
-                    className="rounded-2xl border border-lavender-grey-300/40 bg-lavender-grey-100 p-4 transition duration-200 hover:border-lavender-grey-400/70 hover:shadow-lg hover:shadow-black/10 sm:p-5"
+                    className={`rounded-2xl border p-4 transition duration-200 hover:shadow-lg sm:p-5 ${isVouch
+                      ? "border-emerald-400/60 bg-emerald-50/80 hover:bg-emerald-50 text-emerald-950"
+                      : "border-rose-400/60 bg-rose-50/80 hover:bg-rose-50 text-rose-950"
+                      }`}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div className="min-w-0 flex-1">
                         <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <h3 className="break-all text-base font-bold text-lavender-grey-900">
+                          <h3 className="break-all text-base font-bold">
                             {player.username}
                           </h3>
 
                           <span
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${isVouch
-                              ? "bg-thistle-200 text-thistle-900"
-                              : "bg-soft-blush-200 text-soft-blush-900"
+                              ? "bg-emerald-200 text-emerald-900"
+                              : "bg-rose-200 text-rose-900"
                               }`}
                           >
                             {isVouch ? "Vouch" : "Report"}
                           </span>
                         </div>
 
-                        <p className="whitespace-pre-wrap break-words text-sm leading-6 text-lavender-grey-700">
+                        <p className="whitespace-pre-wrap break-words text-sm leading-6 opacity-90">
                           {player.note}
                         </p>
                       </div>
 
                       <time
                         dateTime={player.updatedAt}
-                        className="shrink-0 text-xs text-lavender-grey-500"
+                        className={`shrink-0 text-xs opacity-75`}
                       >
                         {formatDate(player.updatedAt)}
                       </time>
@@ -533,7 +529,7 @@ export default function App() {
         <footer className="py-8 text-center text-xs leading-6 text-lavender-grey-500">
           <p>Built for the community, by the community.</p>
           <p className="mt-1">
-            Keep feedback honest, respectful, and based on real experiences.
+            Please don't lie about your experiences. If you have any questions, (write a modmail)[https://www.reddit.com/message/compose?to=/r/DonutSMP].
           </p>
         </footer>
       </div>
@@ -541,32 +537,27 @@ export default function App() {
   );
 }
 
+
 type StatCardProps = {
   label: string;
   value: number;
-  symbol: string;
   accent: "lavender" | "thistle" | "blush";
 };
 
-function StatCard({ label, value, symbol, accent }: StatCardProps) {
+function StatCard({ label, value, accent }: StatCardProps) {
   const accentClasses = {
     lavender: "bg-lavender-500/10 text-lavender-500",
-    thistle: "bg-thistle-500/10 text-thistle-500",
-    blush: "bg-soft-blush-400/10 text-soft-blush-400",
+    thistle: "bg-green-100/10 text-thistle-500",
+    blush: "bg-soft-blush-200/10 text-soft-blush-400",
   };
 
   return (
-    <div className="rounded-2xl border border-lavender-grey-300/40 bg-lavender-grey-200 p-5 transition duration-200 hover:-translate-y-0.5 hover:border-lavender-grey-400/60 hover:shadow-lg hover:shadow-black/10">
+    <div className={`rounded-2xl border border-lavender-grey-300/40 ${accentClasses[accent]} p-5 transition duration-200 hover:-translate-y-0.5 hover:border-lavender-grey-400/60 hover:shadow-lg hover:shadow-black/10`}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-lavender-grey-600">
           {label}
         </p>
 
-        <span
-          className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg font-bold ${accentClasses[accent]}`}
-        >
-          {symbol}
-        </span>
       </div>
 
       <p className="mt-3 text-3xl font-bold tracking-tight text-lavender-grey-900">
