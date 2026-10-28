@@ -27,6 +27,8 @@ export default function App() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [usernameError, setUsernameError] = useState("");
+  const [noteError, setNoteError] = useState("");
 
   const fetchPlayers = useCallback(async () => {
     setLoading(true);
@@ -110,8 +112,27 @@ export default function App() {
     setError("");
     setSuccess("");
 
+
+
     const cleanUsername = username.trim();
     const cleanNote = note.trim();
+
+    setUsernameError("");
+    setNoteError("");
+
+    let hasError = false;
+
+    if (!cleanUsername) {
+      setUsernameError("Please enter a Reddit Username.");
+      hasError = true;
+    }
+
+    if (!cleanNote) {
+      setNoteError("Please add a description.");
+      hasError = true;
+    }
+
+    if (hasError) return;
 
     if (!cleanUsername) {
       setError("Please enter a reddit username.");
@@ -326,10 +347,14 @@ export default function App() {
                   placeholder="u/nichtnichtjemand"
                   maxLength={32}
                   autoComplete="off"
-                  required
                   className="w-full rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
                 />
               </div>
+              {usernameError && (
+                <p className="mt-1 text-sm text-rose-600">
+                  {usernameError}
+                </p>
+              )}
 
               {/* Note */}
               <div>
@@ -357,10 +382,14 @@ export default function App() {
                   }
                   rows={4}
                   maxLength={500}
-                  required
                   className="w-full resize-y rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm leading-6 text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
                 />
               </div>
+              {noteError && (
+                <p className="mt-1 text-sm text-rose-600">
+                  {noteError}
+                </p>
+              )}
 
               {/* Feedback */}
               {error && (
@@ -500,8 +529,8 @@ export default function App() {
                   <article
                     key={player.id}
                     className={`rounded-2xl border p-4 transition duration-200 hover:shadow-lg sm:p-5 ${isVouch
-                        ? "border-emerald-400/60 bg-emerald-50/80 hover:bg-emerald-50 text-emerald-950"
-                        : "border-rose-400/60 bg-rose-50/80 hover:bg-rose-50 text-rose-950"
+                      ? "border-emerald-400/60 bg-emerald-50/80 hover:bg-emerald-50 text-emerald-950"
+                      : "border-rose-400/60 bg-rose-50/80 hover:bg-rose-50 text-rose-950"
                       }`}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -513,15 +542,15 @@ export default function App() {
 
                           <span
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${isVouch
-                                ? "bg-emerald-200 text-emerald-900"
-                                : "bg-rose-200 text-rose-900"
+                              ? "bg-emerald-200 text-emerald-900"
+                              : "bg-rose-200 text-rose-900"
                               }`}
                           >
                             {isVouch ? "Vouch" : "Report"}
                           </span>
                         </div>
 
-                        <p className="whitespace-pre-wrap break-words text-sm leading-6 opacity-90">
+                        <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 opacity-90">
                           {player.note}
                         </p>
                       </div>
