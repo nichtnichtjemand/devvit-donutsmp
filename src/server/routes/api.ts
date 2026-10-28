@@ -1,5 +1,6 @@
+
 import { Hono } from 'hono';
-import { redis } from '@devvit/web/server';
+import { redis, reddit } from '@devvit/web/server';
 
 export const api = new Hono();
 
@@ -8,6 +9,7 @@ type EntryType = 'vouch' | 'report';
 interface PlayerEntry {
   id: string;
   username: string;
+  submittedBy: string;
   note: string;
   type: EntryType;
   updatedAt: string;
@@ -20,7 +22,7 @@ function normalizeUsername(value: unknown): string | null {
 
   const username = value.trim().replace(/^u\//i, '');
 
-  if (!/^[A-Za-z0-9_]{1,20}$/.test(username)) {
+  if (!/^[A-Za-z0-9_-]{1,20}$/.test(username)) {
     return null;
   }
 
@@ -52,6 +54,10 @@ function parseEntry(
     return {
       id: typeof data.id === 'string' ? data.id : id,
       username,
+      submittedBy:
+        typeof data.submittedBy === 'string'
+          ? data.submittedBy
+          : '',
       note: data.note,
       type: data.type,
       updatedAt:
@@ -66,7 +72,7 @@ function parseEntry(
 
 // POST /player
 // Creates a new vouch or report.
-// Each entry gets its own Redis key.
+// The author is retrieved server-side from Reddit.
 api.post('/player', async (c) => {
   let body: unknown;
 
@@ -110,7 +116,10 @@ api.post('/player', async (c) => {
 
   if (note.length > 2000) {
     return c.json(
-      { error: 'The description must be at most 2000 characters long.' },
+      {
+        error:
+          'The description must be at most 2000 characters long.',
+      },
       400
     );
   }
@@ -122,11 +131,30 @@ api.post('/player', async (c) => {
     );
   }
 
+  let submittedBy: string | undefined;
+
+  try {
+    submittedBy = await reddit.getCurrentUsername();
+  } catch {
+    return c.json(
+      { error: 'Could not verify your Reddit account.' },
+      500
+    );
+  }
+
+  if (!submittedBy) {
+    return c.json(
+      { error: 'You must be logged in to submit an entry.' },
+      401
+    );
+  }
+
   const id = crypto.randomUUID();
 
   const playerData: PlayerEntry = {
     id,
     username,
+    submittedBy,
     note,
     type: input.type,
     updatedAt: new Date().toISOString(),
@@ -154,7 +182,7 @@ api.post('/player', async (c) => {
 });
 
 // GET /player/:username
-// Returns ALL vouches and reports for a player.
+// Returns all vouches and reports for a player.
 api.get('/player/:username', async (c) => {
   const username = normalizeUsername(
     c.req.param('username')

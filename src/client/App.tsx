@@ -7,6 +7,7 @@ type FilterType = "all" | EntryType;
 type PlayerEntry = {
   id: string;
   username: string;
+  submittedBy: string;
   note: string;
   type: EntryType;
   updatedAt: string;
@@ -25,6 +26,7 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const fetchPlayers = useCallback(async () => {
     setLoading(true);
@@ -225,164 +227,180 @@ export default function App() {
           />
         </section>
 
+
+
+
         {/* Submission form */}
-        <section className="mb-8 rounded-3xl border border-lavender-grey-300/40 bg-lavender-grey-200 p-5 shadow-xl shadow-black/10 sm:p-8">
-          <div className="mb-6">
-            <h2 className="text-xl font-bold">Add a player entry</h2>
-            <p className="mt-1 text-sm text-lavender-grey-600">
-              Keep it fair, factual, and respectful.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Vouch / Report toggle */}
+        <section className="mb-8 rounded-3xl border border-lavender-grey-300/40 bg-lavender-grey-200 p-5 shadow-xl shadow-black/10 sm:p-6">
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <label className="mb-2 block text-sm font-semibold text-lavender-grey-800">
-                Entry type
-              </label>
-
-              <div className="relative isolate grid grid-cols-2 rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 p-1">
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute bottom-1 left-1 top-1 rounded-lg shadow-lg"
-                  style={{
-                    width: "calc(50% - 4px)",
-                    transform:
-                      type === "vouch"
-                        ? "translateX(0)"
-                        : "translateX(100%)",
-                    backgroundColor:
-                      type === "vouch"
-                        ? "var(--color-thistle-500)"
-                        : "var(--color-soft-blush-400)",
-                    transition:
-                      "transform 450ms cubic-bezier(0.22, 1, 0.36, 1), background-color 300ms ease",
-                    willChange: "transform",
-                  }}
-                />
-
-                <button
-                  type="button"
-                  onClick={() => setType("vouch")}
-                  aria-pressed={type === "vouch"}
-                  className={`relative z-10 rounded-lg px-4 py-3 text-sm font-semibold transition-colors duration-200 ${type === "vouch"
-                    ? "text-thistle-100"
-                    : "text-lavender-grey-600 hover:text-lavender-grey-900"
-                    }`}
-                >
-                  <span className="mr-2">✓</span>
-                  Vouch
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setType("report")}
-                  aria-pressed={type === "report"}
-                  className={`relative z-10 rounded-lg px-4 py-3 text-sm font-semibold transition-colors duration-200 ${type === "report"
-                    ? "text-soft-blush-100"
-                    : "text-lavender-grey-600 hover:text-lavender-grey-900"
-                    }`}
-                >
-                  <span className="mr-2">!</span>
-                  Report
-                </button>
-              </div>
-
-              <p className="mt-2 text-xs text-lavender-grey-500">
-                {type === "vouch"
-                  ? "Recommend a player based on a positive experience."
-                  : "Describe a concern clearly and factually."}
+              <h2 className="text-lg font-bold">Add a player entry</h2>
+              <p className="mt-1 text-sm text-lavender-grey-600">
+                Vouch for a player or report suspicious behavior.
               </p>
             </div>
 
-            {/* Username */}
-            <div>
-              <label
-                htmlFor="username"
-                className="mb-2 block text-sm font-semibold text-lavender-grey-800"
-              >
-                Reddit username
-              </label>
+            <button
+              type="button"
+              onClick={() => setIsFormOpen(!isFormOpen)}
+              aria-expanded={isFormOpen}
+              className="shrink-0 rounded-xl bg-lavender-500 px-4 py-2.5 text-sm font-semibold text-lavender-100 transition hover:bg-lavender-400"
+            >
+              {isFormOpen ? "− Close" : "+ Add entry"}
+            </button>
+          </div>
 
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder="Enter their Reddit username"
-                maxLength={32}
-                autoComplete="off"
-                required
-                className="w-full rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
-              />
-            </div>
-
-            {/* Note */}
-            <div>
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <label
-                  htmlFor="note"
-                  className="block text-sm font-semibold text-lavender-grey-800"
-                >
-                  Details
+          {isFormOpen && (
+            <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+              {/* Vouch / Report toggle */}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-lavender-grey-800">
+                  Entry type
                 </label>
 
-                <span className="text-xs tabular-nums text-lavender-grey-500">
-                  {note.length}/500
-                </span>
+                <div className="relative isolate grid grid-cols-2 rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 p-1">
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute bottom-1 left-1 top-1 rounded-lg shadow-lg"
+                    style={{
+                      width: "calc(50% - 4px)",
+                      transform:
+                        type === "vouch" ? "translateX(0)" : "translateX(100%)",
+                      backgroundColor:
+                        type === "vouch"
+                          ? "var(--color-thistle-500)"
+                          : "var(--color-soft-blush-400)",
+                      transition:
+                        "transform 450ms cubic-bezier(0.22, 1, 0.36, 1), background-color 300ms ease",
+                      willChange: "transform",
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setType("vouch")}
+                    aria-pressed={type === "vouch"}
+                    className={`relative z-10 rounded-lg px-4 py-3 text-sm font-semibold transition-colors duration-200 ${type === "vouch"
+                      ? "text-thistle-100"
+                      : "text-lavender-grey-600 hover:text-lavender-grey-900"
+                      }`}
+                  >
+                    Vouch
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setType("report")}
+                    aria-pressed={type === "report"}
+                    className={`relative z-10 rounded-lg px-4 py-3 text-sm font-semibold transition-colors duration-200 ${type === "report"
+                      ? "text-soft-blush-100"
+                      : "text-lavender-grey-600 hover:text-lavender-grey-900"
+                      }`}
+                  >
+                    Report
+                  </button>
+                </div>
+
+                <p className="mt-2 text-xs text-lavender-grey-500">
+                  {type === "vouch"
+                    ? "Recommend a player based on a positive experience."
+                    : "Describe a concern clearly and factually. Please note that we don't allow scamming. If you have proof for the scam, you can write a modmail to the moderators of r/DonutSMP with the link below."}
+                </p>
+
               </div>
 
-              <textarea
-                id="note"
-                value={note}
-                onChange={(event) => setNote(event.target.value)}
-                placeholder={
-                  type === "vouch"
-                    ? "What did this player do well?"
-                    : "Describe the behavior you want to report..."
-                }
-                rows={4}
-                maxLength={500}
-                required
-                className="w-full resize-y rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm leading-6 text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
-              />
-            </div>
+              {/* Username */}
+              <div>
+                <label
+                  htmlFor="username"
+                  className="mb-2 block text-sm font-semibold text-lavender-grey-800"
+                >
+                  Reddit username
+                </label>
 
-            {/* Feedback */}
-            {error && (
-              <div
-                role="alert"
-                className="rounded-xl border border-soft-blush-300/40 bg-soft-blush-100 px-4 py-3 text-sm text-soft-blush-900"
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder="u/nichtnichtjemand"
+                  maxLength={32}
+                  autoComplete="off"
+                  required
+                  className="w-full rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
+                />
+              </div>
+
+              {/* Note */}
+              <div>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <label
+                    htmlFor="note"
+                    className="block text-sm font-semibold text-lavender-grey-800"
+                  >
+                    Details
+                  </label>
+
+                  <span className="text-xs tabular-nums text-lavender-grey-500">
+                    {note.length}/500
+                  </span>
+                </div>
+
+                <textarea
+                  id="note"
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                  placeholder={
+                    type === "vouch"
+                      ? "I traded 16 skeleton spawners with this player, I went first, and they didn't scam me."
+                      : "I tried buying skeleton spawners, but I got scammed and they blocked me immediately after."
+                  }
+                  rows={4}
+                  maxLength={500}
+                  required
+                  className="w-full resize-y rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm leading-6 text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
+                />
+              </div>
+
+              {/* Feedback */}
+              {error && (
+                <div
+                  role="alert"
+                  className="rounded-xl border border-soft-blush-300/40 bg-soft-blush-100 px-4 py-3 text-sm text-soft-blush-900"
+                >
+                  {error}
+                </div>
+              )}
+
+              {success && (
+                <div
+                  role="status"
+                  className="rounded-xl border border-thistle-300/40 bg-thistle-100 px-4 py-3 text-sm text-thistle-900"
+                >
+                  {success}
+                </div>
+              )}
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={submitting}
+                className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold shadow-lg transition duration-200 hover:-translate-y-0.5 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 ${type === "vouch"
+                  ? "bg-thistle-500 text-thistle-100 hover:bg-thistle-600"
+                  : "bg-soft-blush-400 text-soft-blush-100 hover:bg-soft-blush-300"
+                  }`}
               >
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div
-                role="status"
-                className="rounded-xl border border-thistle-300/40 bg-thistle-100 px-4 py-3 text-sm text-thistle-900"
-              >
-                {success}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold shadow-lg transition duration-200 hover:-translate-y-0.5 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 ${type === "vouch"
-                ? "bg-thistle-500 text-thistle-100 hover:bg-thistle-600"
-                : "bg-soft-blush-400 text-soft-blush-100 hover:bg-soft-blush-300"
-                }`}
-            >
-              {submitting
-                ? "Submitting..."
-                : type === "vouch"
-                  ? "Submit vouch"
-                  : "Submit report"}
-            </button>
-          </form>
+                {submitting
+                  ? "Submitting..."
+                  : type === "vouch"
+                    ? "Submit vouch"
+                    : "Submit report"}
+              </button>
+            </form>
+          )}
         </section>
+
+
 
         {/* Community entries */}
         <section className="rounded-3xl border border-lavender-grey-300/40 bg-lavender-grey-200 p-5 shadow-xl shadow-black/10 sm:p-8">
@@ -478,11 +496,12 @@ export default function App() {
                 const isVouch = player.type === "vouch";
 
                 return (
+
                   <article
                     key={player.id}
                     className={`rounded-2xl border p-4 transition duration-200 hover:shadow-lg sm:p-5 ${isVouch
-                      ? "border-emerald-400/60 bg-emerald-50/80 hover:bg-emerald-50 text-emerald-950"
-                      : "border-rose-400/60 bg-rose-50/80 hover:bg-rose-50 text-rose-950"
+                        ? "border-emerald-400/60 bg-emerald-50/80 hover:bg-emerald-50 text-emerald-950"
+                        : "border-rose-400/60 bg-rose-50/80 hover:bg-rose-50 text-rose-950"
                       }`}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -494,8 +513,8 @@ export default function App() {
 
                           <span
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${isVouch
-                              ? "bg-emerald-200 text-emerald-900"
-                              : "bg-rose-200 text-rose-900"
+                                ? "bg-emerald-200 text-emerald-900"
+                                : "bg-rose-200 text-rose-900"
                               }`}
                           >
                             {isVouch ? "Vouch" : "Report"}
@@ -509,12 +528,29 @@ export default function App() {
 
                       <time
                         dateTime={player.updatedAt}
-                        className={`shrink-0 text-xs opacity-75`}
+                        className="shrink-0 text-xs opacity-75"
                       >
                         {formatDate(player.updatedAt)}
                       </time>
                     </div>
+
+                    {player.submittedBy && (
+                      <div className="mt-3 flex justify-end">
+                        <span className="text-xs opacity-60">
+                          {isVouch ? "Vouched by " : "Reported by "}
+                          <a
+                            href={`https://www.reddit.com/user/${encodeURIComponent(player.submittedBy)}/`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium underline underline-offset-2 transition-opacity hover:opacity-100"
+                          >
+                            u/{player.submittedBy}
+                          </a>
+                        </span>
+                      </div>
+                    )}
                   </article>
+
                 );
               })}
             </div>
@@ -529,7 +565,8 @@ export default function App() {
         <footer className="py-8 text-center text-xs leading-6 text-lavender-grey-500">
           <p>Built for the community, by the community.</p>
           <p className="mt-1">
-            Please don't lie about your experiences. If you have any questions, (write a modmail)[https://www.reddit.com/message/compose?to=/r/DonutSMP].
+            Please don't lie about your experiences. If you have any questions,
+            <a href="https://www.reddit.com/message/compose?to=r/DonutSMP" target="_blank" rel="noopener noreferrer"> write a modmail</a>.
           </p>
         </footer>
       </div>
