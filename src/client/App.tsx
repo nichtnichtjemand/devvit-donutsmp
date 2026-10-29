@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { requestExpandedMode } from '@devvit/web/client';
+
 
 type EntryType = "vouch" | "report";
 type FilterType = "all" | EntryType;
@@ -29,6 +31,28 @@ export default function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [usernameError, setUsernameError] = useState("");
   const [noteError, setNoteError] = useState("");
+
+  useEffect(() => {
+    const handleGlobalClick = (event: MouseEvent) => {
+      // Erkennt mobile Browser (iOS, Android) und Touch-Eigenschaften
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        || ('ontouchstart' in window)
+        || (navigator.maxTouchPoints > 0);
+
+      if (isMobile) {
+        // Schaltet auf Mobilgeräten bei jedem beliebigen Klick in den Vollbildmodus
+        requestExpandedMode(event, 'default');
+      }
+    };
+
+    // Registriert den Klick-Listener global auf dem Fenster
+    window.addEventListener('click', handleGlobalClick);
+
+    // Entfernt den Listener automatisch, falls die App schließt
+    return () => {
+      window.removeEventListener('click', handleGlobalClick);
+    };
+  }, []);
 
   const fetchPlayers = useCallback(async () => {
     setLoading(true);
@@ -266,7 +290,7 @@ export default function App() {
               aria-expanded={isFormOpen}
               className="shrink-0 rounded-xl bg-lavender-500 px-4 py-2.5 text-sm font-semibold text-lavender-100 transition hover:bg-lavender-400"
             >
-              {isFormOpen ? "− Close" : "+ Add entry"}
+              {isFormOpen ? "Close" : "Add entry"}
             </button>
           </div>
 
@@ -288,13 +312,14 @@ export default function App() {
                         type === "vouch" ? "translateX(0)" : "translateX(100%)",
                       backgroundColor:
                         type === "vouch"
-                          ? "var(--color-thistle-500)"
+                          ? "var(--color-green-200)"
                           : "var(--color-soft-blush-400)",
                       transition:
                         "transform 450ms cubic-bezier(0.22, 1, 0.36, 1), background-color 300ms ease",
                       willChange: "transform",
                     }}
                   />
+
 
                   <button
                     type="button"
@@ -321,11 +346,12 @@ export default function App() {
                   </button>
                 </div>
 
-                <p className="mt-2 text-xs text-lavender-grey-500">
+                <p className="mt-2 text-xs text-lavender-grey-500 min-h-[48px] sm:min-h-[32px]">
                   {type === "vouch"
                     ? "Recommend a player based on a positive experience."
                     : "Describe a concern clearly and factually. Please note that we don't allow scamming. If you have proof for the scam, you can write a modmail to the moderators of r/DonutSMP with the link below."}
                 </p>
+
 
               </div>
 
@@ -414,7 +440,7 @@ export default function App() {
                 type="submit"
                 disabled={submitting}
                 className={`flex w-full items-center justify-center gap-2 rounded-xl px-5 py-3.5 text-sm font-bold shadow-lg transition duration-200 hover:-translate-y-0.5 hover:shadow-xl disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 ${type === "vouch"
-                  ? "bg-thistle-500 text-thistle-100 hover:bg-thistle-600"
+                  ? "bg-green-200 text-thistle-100 hover:bg-thistle-600"
                   : "bg-soft-blush-400 text-soft-blush-100 hover:bg-soft-blush-300"
                   }`}
               >
@@ -612,10 +638,9 @@ type StatCardProps = {
 function StatCard({ label, value, accent }: StatCardProps) {
   const accentClasses = {
     lavender: "bg-lavender-500/10 text-lavender-500",
-    thistle: "bg-green-100/10 text-thistle-500",
+    thistle: "bg-green-100/10 text-green-200",
     blush: "bg-soft-blush-200/10 text-soft-blush-400",
   };
-
   return (
     <div className={`rounded-2xl border border-lavender-grey-300/40 ${accentClasses[accent]} p-5 transition duration-200 hover:-translate-y-0.5 hover:border-lavender-grey-400/60 hover:shadow-lg hover:shadow-black/10`}>
       <div className="flex items-center justify-between gap-3">
