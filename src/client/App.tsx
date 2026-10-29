@@ -219,8 +219,7 @@ export default function App() {
           </h1>
 
           <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-lavender-grey-600 sm:text-lg">
-            Help the community recognize trustworthy players and report
-            suspicious behavior. Share your experiences with others.
+            Help the community with sharing your experiences!
           </p>
         </header>
 
