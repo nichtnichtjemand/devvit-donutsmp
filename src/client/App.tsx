@@ -34,21 +34,17 @@ export default function App() {
 
   useEffect(() => {
     const handleGlobalClick = (event: MouseEvent) => {
-      // Erkennt mobile Browser (iOS, Android) und Touch-Eigenschaften
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
         || ('ontouchstart' in window)
         || (navigator.maxTouchPoints > 0);
 
       if (isMobile) {
-        // Schaltet auf Mobilgeräten bei jedem beliebigen Klick in den Vollbildmodus
         requestExpandedMode(event, 'default');
       }
     };
 
-    // Registriert den Klick-Listener global auf dem Fenster
     window.addEventListener('click', handleGlobalClick);
 
-    // Entfernt den Listener automatisch, falls die App schließt
     return () => {
       window.removeEventListener('click', handleGlobalClick);
     };
