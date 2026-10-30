@@ -542,7 +542,7 @@ export default function App() {
               {success && (
                 <div
                   role="status"
-                  className="rounded-xl border border-thistle-300/40 bg-green-100 px-4 py-3 text-sm text-black"
+                  className="rounded-xl border border-thistle-300/40 bg-green-100 px-4 py-3 text-sm !text-black"
                 >
                   {success}
                 </div>
