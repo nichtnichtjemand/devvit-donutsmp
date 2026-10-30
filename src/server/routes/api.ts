@@ -344,3 +344,26 @@ api.get('/player/:username/summary', async (c) => {
     );
   }
 });
+
+api.get('/me', async (c) => { 
+
+  try {
+    var user = await reddit.getCurrentUsername();
+  } catch {
+    return c.json(
+      { error: 'Could not verify your Reddit account.' },
+      500
+    );
+  }
+
+  if (!user) {
+    return c.json(
+      { error: 'Not logged in.' },
+      401
+    );
+  }
+  return c.json(
+    {user},
+    200
+  )
+});
