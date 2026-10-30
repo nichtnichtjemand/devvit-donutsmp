@@ -366,7 +366,7 @@ export default function App() {
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
                   placeholder="u/nichtnichtjemand"
-                  maxLength={32}
+                  maxLength={20}
                   autoComplete="off"
                   className="w-full rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
                 />
