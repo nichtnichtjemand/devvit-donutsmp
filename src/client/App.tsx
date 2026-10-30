@@ -15,6 +15,20 @@ type PlayerEntry = {
   updatedAt: string;
 };
 
+type LookupResult = {
+  username: string;
+  status: 'trusted' | 'dangerous' | 'neutral';
+  stats: { vouches: number; reports: number; total: number };
+  entries: Array<{
+    id: string;
+    type: EntryType;
+    note: string;
+    submittedBy: string;
+    updatedAt: string;
+  }>;
+};
+
+
 const API_URL = "/api";
 
 export default function App() {
@@ -31,6 +45,42 @@ export default function App() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [usernameError, setUsernameError] = useState("");
   const [noteError, setNoteError] = useState("");
+
+  const [lookupName, setLookupName] = useState("");
+  const [lookupResult, setLookupResult] = useState<LookupResult | null>(null);
+  const [lookupLoading, setLookupLoading] = useState(false);
+  const [lookupError, setLookupError] = useState("");
+
+  async function handlePlayerLookup(event: FormEvent) {
+    event.preventDefault();
+    const cleanName = lookupName.trim().replace(/^u\//i, "");
+    if (!cleanName) return;
+
+    setLookupLoading(true);
+    setLookupError("");
+    setLookupResult(null);
+
+    try {
+      const response = await fetch(`${API_URL}/player/${encodeURIComponent(cleanName)}/summary`);
+
+      if (response.status === 404) {
+        setLookupError(`No entries found for u/${cleanName}.`);
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      const data = await response.json();
+      setLookupResult(data as LookupResult);
+    } catch {
+      setLookupError("Could not fetch player summary. Please try again.");
+    } finally {
+      setLookupLoading(false);
+    }
+  }
+
 
   useEffect(() => {
     const handleGlobalClick = (event: MouseEvent) => {
@@ -267,6 +317,73 @@ export default function App() {
           />
         </section>
 
+        {/* Player Reputation Check */}
+        <section className="mb-8 rounded-3xl border border-lavender-grey-300/40 bg-lavender-grey-200 p-5 shadow-xl shadow-black/10 sm:p-6">
+          <h2 className="text-lg font-bold">Player Reputation Check</h2>
+          <p className="mt-1 text-sm text-lavender-grey-600">
+            Quickly verify a player's history before entering a trade.
+          </p>
+
+          <form onSubmit={handlePlayerLookup} className="mt-4 flex gap-2">
+            <input
+              type="text"
+              value={lookupName}
+              onChange={(e) => setLookupName(e.target.value)}
+              placeholder="Enter username (e.g. nichtnichtjemand)"
+              maxLength={20}
+              className="w-full rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
+            />
+            <button
+              type="submit"
+              disabled={lookupLoading || !lookupName.trim()}
+              className="shrink-0 rounded-xl bg-lavender-500 px-5 py-3 text-sm font-semibold text-lavender-100 transition hover:bg-lavender-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {lookupLoading ? "Checking..." : "Search"}
+            </button>
+          </form>
+
+          {lookupError && (
+            <p className="mt-3 text-sm text-rose-600 font-medium">{lookupError}</p>
+          )}
+
+          {lookupResult && (
+            <div className="mt-6 rounded-2xl border border-lavender-grey-300/30 bg-lavender-grey-100/50 p-4" style={{ animation: 'fadeIn 300ms ease-out' }}>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-xl font-bold">u/{lookupResult.username}</h3>
+                  <p className="text-xs text-lavender-grey-600 mt-0.5">
+                    Based on {lookupResult.stats.total} community reports
+                  </p>
+                </div>
+
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold shadow-sm border ${lookupResult.status === "trusted"
+                    ? "bg-green-100/10 text-green-200 border-green-200/20"
+                    : lookupResult.status === "dangerous"
+                      ? "bg-soft-blush-200/10 text-soft-blush-200 border-soft-blush-200/20"
+                      : "bg-lavender-grey-300/10 text-lavender-grey-600 border-lavender-grey-300/20"
+                    }`}
+                >
+                  <span className="h-2 w-2 rounded-full bg-current" />
+                  {lookupResult.status === "trusted" && "Highly Trusted"}
+                  {lookupResult.status === "dangerous" && "High Risk / Scammer"}
+                  {lookupResult.status === "neutral" && "Neutral / Mixed"}
+                </span>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-lavender-grey-200/60 p-3 text-center text-sm">
+                <div>
+                  <span className="block font-bold text-green-200">{lookupResult.stats.vouches}</span>
+                  <span className="text-xs text-lavender-grey-600">Vouches</span>
+                </div>
+                <div className="border-l border-lavender-grey-300/30">
+                  <span className="block font-bold text-soft-blush-200">{lookupResult.stats.reports}</span>
+                  <span className="text-xs text-lavender-grey-600">Reports</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
 
 
 
@@ -425,11 +542,12 @@ export default function App() {
               {success && (
                 <div
                   role="status"
-                  className="rounded-xl border border-thistle-300/40 bg-thistle-100 px-4 py-3 text-sm text-thistle-900"
+                  className="rounded-xl border border-thistle-300/40 bg-green-100 px-4 py-3 text-sm text-black"
                 >
                   {success}
                 </div>
               )}
+
 
               {/* Submit */}
               <button
