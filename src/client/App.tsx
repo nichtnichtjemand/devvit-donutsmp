@@ -365,9 +365,9 @@ export default function App() {
                     }`}
                 >
                   <span className="h-2 w-2 rounded-full bg-current" />
-                  {lookupResult.status === "trusted" && "Highly Trusted"}
-                  {lookupResult.status === "dangerous" && "High Risk / Scammer"}
-                  {lookupResult.status === "neutral" && "Neutral / Mixed"}
+                  {lookupResult.status === "trusted" && "Trusted"}
+                  {lookupResult.status === "dangerous" && "High Risk"}
+                  {lookupResult.status === "neutral" && "Neutral"}
                 </span>
               </div>
 

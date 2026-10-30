@@ -70,9 +70,6 @@ function parseEntry(
   }
 }
 
-// POST /player
-// Creates a new vouch or report.
-// The author is retrieved server-side from Reddit.
 api.post('/player', async (c) => {
   let body: unknown;
 
@@ -99,6 +96,45 @@ api.post('/player', async (c) => {
     return c.json(
       { error: 'Enter a valid Reddit username.' },
       400
+    );
+  }
+
+  try {
+    const targetUser = await reddit.getUserByUsername(username);
+    
+    if (!targetUser) {
+      return c.json(
+        { error: `The Reddit user u/${username} does not exist.` },
+        404
+      );
+    }
+  } catch {
+    return c.json(
+      { error: `The Reddit user u/${username} could not be found or is suspended.` },
+      404
+    );
+  }
+
+    try {
+    const currentSubreddit = await reddit.getCurrentSubreddit();
+
+    const banList = await reddit.getBannedUsers({
+      subredditName: currentSubreddit.name,
+      username: username,
+    });
+
+    const isBanned = banList.all && banList.all.length > 0;
+
+    if (isBanned) {
+      return c.json(
+        { error: `The user u/${username} is currently banned from r/DonutSMP!.` },
+        403
+      );
+    }
+  } catch (error) {
+    return c.json(
+      { error: 'Failed to verify subreddit ban status due to missing moderator permissions. If you see this, please write a modmail.' },
+      500
     );
   }
 
@@ -180,6 +216,7 @@ api.post('/player', async (c) => {
     );
   }
 });
+
 
 // GET /player/:username
 // Returns all vouches and reports for a player.
