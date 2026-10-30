@@ -2,9 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { requestExpandedMode } from '@devvit/web/client';
 
-
 type EntryType = "vouch" | "report";
-type FilterType = "all" | EntryType;
 
 type PlayerEntry = {
   id: string;
@@ -28,7 +26,6 @@ type LookupResult = {
   }>;
 };
 
-
 const API_URL = "/api";
 
 export default function App() {
@@ -36,16 +33,12 @@ export default function App() {
   const [username, setUsername] = useState("");
   const [note, setNote] = useState("");
   const [type, setType] = useState<EntryType>("vouch");
-  const [filter, setFilter] = useState<FilterType>("all");
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [usernameError, setUsernameError] = useState("");
   const [noteError, setNoteError] = useState("");
-
   const [lookupName, setLookupName] = useState("");
   const [lookupResult, setLookupResult] = useState<LookupResult | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
@@ -53,7 +46,9 @@ export default function App() {
 
   async function handlePlayerLookup(event: FormEvent) {
     event.preventDefault();
+
     const cleanName = lookupName.trim().replace(/^u\//i, "");
+
     if (!cleanName) return;
 
     setLookupLoading(true);
@@ -81,7 +76,6 @@ export default function App() {
     }
   }
 
-
   useEffect(() => {
     const handleGlobalClick = (event: MouseEvent) => {
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
@@ -101,8 +95,6 @@ export default function App() {
   }, []);
 
   const fetchPlayers = useCallback(async () => {
-    setLoading(true);
-
     try {
       const response = await fetch(`${API_URL}/players`);
 
@@ -111,7 +103,6 @@ export default function App() {
       }
 
       const data: unknown = await response.json();
-
       let entries: unknown[] = [];
 
       if (Array.isArray(data)) {
@@ -129,8 +120,6 @@ export default function App() {
       setError("");
     } catch {
       setError("Could not connect to the server. Please try again.");
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -154,35 +143,11 @@ export default function App() {
     };
   }, [players]);
 
-  const filteredPlayers = useMemo(() => {
-    const query = search.trim().toLowerCase();
-
-    return players
-      .filter((player) => {
-        const matchesSearch =
-          player.username.toLowerCase().includes(query) ||
-          player.note.toLowerCase().includes(query);
-
-        const matchesFilter =
-          filter === "all" || player.type === filter;
-
-        return matchesSearch && matchesFilter;
-      })
-      .sort((a, b) => {
-        const dateA = new Date(a.updatedAt).getTime() || 0;
-        const dateB = new Date(b.updatedAt).getTime() || 0;
-
-        return dateB - dateA;
-      });
-  }, [players, search, filter]);
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setError("");
     setSuccess("");
-
-
 
     const cleanUsername = username.trim();
     const cleanNote = note.trim();
@@ -278,12 +243,27 @@ export default function App() {
     });
   }
 
+  const lookupVouches = (lookupResult?.entries ?? [])
+    .filter((entry) => entry.type === "vouch")
+    .sort((a, b) => {
+      const dateA = new Date(a.updatedAt).getTime() || 0;
+      const dateB = new Date(b.updatedAt).getTime() || 0;
+      return dateB - dateA;
+    });
+
+  const lookupReports = (lookupResult?.entries ?? [])
+    .filter((entry) => entry.type === "report")
+    .sort((a, b) => {
+      const dateA = new Date(a.updatedAt).getTime() || 0;
+      const dateB = new Date(b.updatedAt).getTime() || 0;
+      return dateB - dateA;
+    });
+
   return (
     <main className="min-h-screen bg-lavender-grey-100 px-4 py-10 text-lavender-grey-900 sm:px-6">
       <div className="mx-auto max-w-5xl">
         {/* Header */}
         <header className="mb-10 text-center">
-
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Player <span className="text-lavender-500">Vouches</span>
           </h1>
@@ -319,7 +299,10 @@ export default function App() {
 
         {/* Player Reputation Check */}
         <section className="mb-8 rounded-3xl border border-lavender-grey-300/40 bg-lavender-grey-200 p-5 shadow-xl shadow-black/10 sm:p-6">
-          <h2 className="text-lg font-bold">Player Reputation Check</h2>
+          <h2 className="text-lg font-bold">
+            Player Reputation Check
+          </h2>
+
           <p className="mt-1 text-sm text-lavender-grey-600">
             Quickly verify a player's history before entering a trade.
           </p>
@@ -333,6 +316,7 @@ export default function App() {
               maxLength={20}
               className="w-full rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
             />
+
             <button
               type="submit"
               disabled={lookupLoading || !lookupName.trim()}
@@ -343,16 +327,24 @@ export default function App() {
           </form>
 
           {lookupError && (
-            <p className="mt-3 text-sm text-rose-600 font-medium">{lookupError}</p>
+            <p className="mt-3 text-sm text-rose-600 font-medium">
+              {lookupError}
+            </p>
           )}
 
           {lookupResult && (
-            <div className="mt-6 rounded-2xl border border-lavender-grey-300/30 bg-lavender-grey-100/50 p-4" style={{ animation: 'fadeIn 300ms ease-out' }}>
+            <div
+              className="mt-6 rounded-2xl border border-lavender-grey-300/30 bg-lavender-grey-100/50 p-4"
+              style={{ animation: 'fadeIn 300ms ease-out' }}
+            >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h3 className="text-xl font-bold">u/{lookupResult.username}</h3>
+                  <h3 className="text-xl font-bold">
+                    u/{lookupResult.username}
+                  </h3>
+
                   <p className="text-xs text-lavender-grey-600 mt-0.5">
-                    Based on {lookupResult.stats.total} community reports
+                    Based on {lookupResult.stats.total} community entries
                   </p>
                 </div>
 
@@ -365,6 +357,7 @@ export default function App() {
                     }`}
                 >
                   <span className="h-2 w-2 rounded-full bg-current" />
+
                   {lookupResult.status === "trusted" && "Trusted"}
                   {lookupResult.status === "dangerous" && "High Risk"}
                   {lookupResult.status === "neutral" && "Neutral"}
@@ -373,25 +366,151 @@ export default function App() {
 
               <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-lavender-grey-200/60 p-3 text-center text-sm">
                 <div>
-                  <span className="block font-bold text-green-200">{lookupResult.stats.vouches}</span>
-                  <span className="text-xs text-lavender-grey-600">Vouches</span>
+                  <span className="block font-bold text-green-200">
+                    {lookupResult.stats.vouches}
+                  </span>
+
+                  <span className="text-xs text-lavender-grey-600">
+                    Vouches
+                  </span>
                 </div>
+
                 <div className="border-l border-lavender-grey-300/30">
-                  <span className="block font-bold text-soft-blush-200">{lookupResult.stats.reports}</span>
-                  <span className="text-xs text-lavender-grey-600">Reports</span>
+                  <span className="block font-bold text-soft-blush-200">
+                    {lookupResult.stats.reports}
+                  </span>
+
+                  <span className="text-xs text-lavender-grey-600">
+                    Reports
+                  </span>
                 </div>
+              </div>
+
+              {/* Vouches */}
+              <div className="mt-5">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h4 className="text-sm font-bold">
+                    All vouches for u/{lookupResult.username}
+                  </h4>
+
+                  <span className="rounded-full bg-green-100/10 px-2.5 py-1 text-xs font-semibold text-green-200">
+                    {lookupVouches.length}
+                  </span>
+                </div>
+
+                {lookupVouches.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-lavender-grey-300/50 bg-lavender-grey-200/40 px-4 py-6 text-center text-sm text-lavender-grey-600">
+                    No vouches have been submitted for this player yet.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {lookupVouches.map((vouch) => (
+                      <article
+                        key={vouch.id}
+                        className="rounded-xl border border-green-100/30 bg-green-200/10 p-4"
+                      >
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <p className="min-w-0 whitespace-pre-wrap wrap-break-word text-sm leading-6 text-lavender-grey-900">
+                            {vouch.note}
+                          </p>
+
+                          <time
+                            dateTime={vouch.updatedAt}
+                            className="shrink-0 text-xs text-lavender-grey-600"
+                          >
+                            {formatDate(vouch.updatedAt)}
+                          </time>
+                        </div>
+
+                        {vouch.submittedBy && (
+                          <div className="mt-3 text-right text-xs text-lavender-grey-600">
+                            Vouched by{' '}
+
+                            <a
+                              href={`https://www.reddit.com/user/${encodeURIComponent(vouch.submittedBy)}/`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium underline underline-offset-2 hover:text-lavender-grey-900"
+                            >
+                              u/{vouch.submittedBy}
+                            </a>
+                          </div>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Reports */}
+              <div className="mt-6">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h4 className="text-sm font-bold">
+                    All reports for u/{lookupResult.username}
+                  </h4>
+
+                  <span className="rounded-full bg-soft-blush-200/10 px-2.5 py-1 text-xs font-semibold text-soft-blush-200">
+                    {lookupReports.length}
+                  </span>
+                </div>
+
+
+                {lookupReports.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-lavender-grey-300/50 bg-lavender-grey-200/40 px-4 py-6 text-center text-sm text-lavender-grey-600">
+                    No reports have been submitted for this player yet.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {lookupReports.map((report) => (
+
+                      <article
+                        key={report.id}
+                        className="rounded-xl border border-soft-blush-300/30 bg-soft-blush-200/10 p-4"
+                      >
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <p className="min-w-0 whitespace-pre-wrap wrap-break-word text-sm leading-6 text-lavender-grey-900">
+                            {report.note}
+                          </p>
+
+                          <time
+                            dateTime={report.updatedAt}
+                            className="shrink-0 text-xs text-lavender-grey-600"
+                          >
+                            {formatDate(report.updatedAt)}
+                          </time>
+                        </div>
+
+                        {report.submittedBy && (
+                          <div className="mt-3 text-right text-xs text-lavender-grey-600">
+                            Reported by{' '}
+
+                            <a
+                              href={`https://www.reddit.com/user/${encodeURIComponent(report.submittedBy)}/`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-medium underline underline-offset-2 hover:text-lavender-grey-900"
+                            >
+                              u/{report.submittedBy}
+                            </a>
+                          </div>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
         </section>
 
-
-
         {/* Submission form */}
         <section className="mb-8 rounded-3xl border border-lavender-grey-300/40 bg-lavender-grey-200 p-5 shadow-xl shadow-black/10 sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-lg font-bold">Add a player entry</h2>
+              <h2 className="text-lg font-bold">
+                Add a player entry
+              </h2>
+
               <p className="mt-1 text-sm text-lavender-grey-600">
                 Vouch for a player or report suspicious behavior.
               </p>
@@ -433,7 +552,6 @@ export default function App() {
                     }}
                   />
 
-
                   <button
                     type="button"
                     onClick={() => setType("vouch")}
@@ -464,8 +582,6 @@ export default function App() {
                     ? "Recommend a player based on a positive experience."
                     : "Describe a concern clearly and factually. Please note that we don't allow scamming. If you have proof for the scam, you can write a modmail to the moderators of r/DonutSMP with the link below."}
                 </p>
-
-
               </div>
 
               {/* Username */}
@@ -488,6 +604,7 @@ export default function App() {
                   className="w-full rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
                 />
               </div>
+
               {usernameError && (
                 <p className="mt-1 text-sm text-rose-600">
                   {usernameError}
@@ -523,6 +640,7 @@ export default function App() {
                   className="w-full resize-y rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm leading-6 text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
                 />
               </div>
+
               {noteError && (
                 <p className="mt-1 text-sm text-rose-600">
                   {noteError}
@@ -548,7 +666,6 @@ export default function App() {
                 </div>
               )}
 
-
               {/* Submit */}
               <button
                 type="submit"
@@ -568,180 +685,25 @@ export default function App() {
           )}
         </section>
 
-
-
-        {/* Community entries */}
-        <section className="rounded-3xl border border-lavender-grey-300/40 bg-lavender-grey-200 p-5 shadow-xl shadow-black/10 sm:p-8">
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-xl font-bold">Community entries</h2>
-              <p className="mt-1 text-sm text-lavender-grey-600">
-                Browse the latest Player feedback.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => void fetchPlayers()}
-              disabled={loading}
-              className="inline-flex items-center justify-center gap-2 self-start rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-2.5 text-sm font-semibold text-lavender-grey-700 transition hover:border-lavender-400 hover:text-lavender-veil-900 disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto"
-            >
-              <span className={loading ? "animate-spin" : ""}>↻</span>
-              Refresh
-            </button>
-          </div>
-
-          {/* Search */}
-          <div className="mb-4">
-            <label htmlFor="search" className="sr-only">
-              Search entries
-            </label>
-
-            <input
-              id="search"
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search usernames or notes..."
-              className="w-full rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
-            />
-          </div>
-
-          {/* Filters */}
-          <div className="mb-6 flex flex-wrap gap-2">
-            {(
-              [
-                ["all", "All entries"],
-                ["vouch", "Vouches"],
-                ["report", "Reports"],
-              ] as const
-            ).map(([value, label]) => {
-              const active = filter === value;
-
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setFilter(value)}
-                  aria-pressed={active}
-                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition duration-200 ${active
-                    ? "border-lavender-400 bg-lavender-500 text-lavender-100"
-                    : "border-lavender-grey-300/50 bg-lavender-grey-100 text-lavender-grey-600 hover:border-lavender-400 hover:text-lavender-grey-900"
-                    }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Entry list */}
-          {loading && players.length === 0 ? (
-            <div className="py-12 text-center">
-              <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-lavender-grey-300 border-t-lavender-400" />
-
-              <p className="text-sm text-lavender-grey-600">
-                Loading community entries...
-              </p>
-            </div>
-          ) : filteredPlayers.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-lavender-grey-300/60 bg-lavender-grey-100/50 px-5 py-12 text-center">
-              <div className="mb-3 text-3xl text-lavender-500">✦</div>
-
-              <h3 className="font-semibold text-lavender-grey-900">
-                No entries found
-              </h3>
-
-              <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-lavender-grey-600">
-                {players.length === 0
-                  ? "Be the first to add a player vouch or report."
-                  : "Try a different search term or filter."}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredPlayers.map((player) => {
-                const isVouch = player.type === "vouch";
-
-                return (
-
-                  <article
-                    key={player.id}
-                    className={`rounded-2xl border p-4 transition duration-200 hover:shadow-lg sm:p-5 ${isVouch
-                      ? "border-green-100/30 bg-green-200/10 hover:bg-green-200/20 text-lavender-grey-900"
-                      : "border-soft-blush-300/30 bg-soft-blush-200/10 hover:bg-soft-blush-200/20 text-lavender-grey-900"
-                      }`}
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-2 flex flex-wrap items-center gap-2">
-                          <h3 className="break-all text-base font-bold">
-                            {player.username}
-                          </h3>
-
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${isVouch
-                              ? "bg-emerald-200 text-emerald-900"
-                              : "bg-rose-200 text-rose-900"
-                              }`}
-                          >
-                            {isVouch ? "Vouch" : "Report"}
-                          </span>
-                        </div>
-
-                        <p className="mt-1 whitespace-pre-wrap wrap-break-word text-sm leading-6 opacity-90">
-                          {player.note}
-                        </p>
-                      </div>
-
-                      <time
-                        dateTime={player.updatedAt}
-                        className="shrink-0 text-xs opacity-75"
-                      >
-                        {formatDate(player.updatedAt)}
-                      </time>
-                    </div>
-
-                    {player.submittedBy && (
-                      <div className="mt-3 flex justify-end">
-                        <span className="text-xs opacity-60">
-                          {isVouch ? "Vouched by " : "Reported by "}
-                          <a
-                            href={`https://www.reddit.com/user/${encodeURIComponent(player.submittedBy)}/`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-medium underline underline-offset-2 transition-opacity hover:opacity-100"
-                          >
-                            u/{player.submittedBy}
-                          </a>
-                        </span>
-                      </div>
-                    )}
-                  </article>
-
-                );
-              })}
-            </div>
-          )}
-
-          <p className="mt-5 text-center text-xs text-lavender-grey-500">
-            Showing {filteredPlayers.length} of {players.length} entries
-          </p>
-        </section>
-
         {/* Footer */}
         <footer className="py-8 text-center text-xs leading-6 text-lavender-grey-500">
           <p>Built for the community, by the community.</p>
+
           <p className="mt-1">
             Please don't lie about your experiences. If you have any questions,
-            <a href="https://www.reddit.com/message/compose?to=r/DonutSMP" target="_blank" rel="noopener noreferrer"> write a modmail</a>.
+            <a
+              href="https://www.reddit.com/message/compose?to=r/DonutSMP"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {" "}write a modmail
+            </a>.
           </p>
         </footer>
       </div>
     </main>
   );
 }
-
 
 type StatCardProps = {
   label: string;
@@ -755,13 +717,13 @@ function StatCard({ label, value, accent }: StatCardProps) {
     thistle: "bg-green-100/10 text-green-200",
     blush: "bg-soft-blush-200/10 text-soft-blush-200",
   };
+
   return (
     <div className={`rounded-2xl border border-lavender-grey-300/40 ${accentClasses[accent]} p-5 transition duration-200 hover:-translate-y-0.5 hover:border-lavender-grey-400/60 hover:shadow-lg hover:shadow-black/10`}>
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-medium text-lavender-grey-600">
           {label}
         </p>
-
       </div>
 
       <p className="mt-3 text-3xl font-bold tracking-tight text-lavender-grey-900">
