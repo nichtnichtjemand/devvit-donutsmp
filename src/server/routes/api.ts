@@ -347,8 +347,9 @@ api.get('/player/:username/summary', async (c) => {
 
 api.get('/me', async (c) => { 
 
+  let user: string | undefined;
   try {
-    var user = await reddit.getCurrentUsername();
+    user = await reddit.getCurrentUsername();
   } catch {
     return c.json(
       { error: 'Could not verify your Reddit account.' },
@@ -365,5 +366,5 @@ api.get('/me', async (c) => {
   return c.json(
     {user},
     200
-  )
+  );
 });
