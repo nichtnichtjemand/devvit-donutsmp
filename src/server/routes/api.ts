@@ -257,3 +257,53 @@ api.get('/players', async (c) => {
     );
   }
 });
+
+api.get('/player/:username/summary', async (c) => {
+  const username = normalizeUsername(c.req.param('username'));
+
+  if (!username) {
+    return c.json(
+      { error: 'Enter a valid Reddit username.' },
+      400
+    );
+  }
+
+  try {
+    const data = await redis.hGetAll('players');
+
+    const entries = Object.entries(data ?? {})
+      .filter(([key]) => key.startsWith('entry:'))
+      .map(([key, value]) => parseEntry(value, key))
+      .filter(
+        (player): player is PlayerEntry =>
+          player !== null &&
+          player.username.toLowerCase() === username.toLowerCase()
+      )
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+
+    const vouches = entries.filter((e) => e.type === 'vouch').length;
+    const reports = entries.filter((e) => e.type === 'report').length;
+
+    let status = 'neutral';
+    if (vouches > 0 && reports === 0) status = 'trusted';
+    if (reports > 0) status = 'dangerous';
+
+    return c.json({
+      username,
+      status,
+      stats: { vouches, reports, total: entries.length },
+      entries: entries.map((e) => ({
+        id: e.id,
+        type: e.type,
+        note: e.note,
+        submittedBy: e.submittedBy,
+        updatedAt: e.updatedAt,
+      })),
+    });
+  } catch {
+    return c.json(
+      { error: 'Error while generating player summary.' },
+      500
+    );
+  }
+});
