@@ -388,7 +388,7 @@ export default function App() {
                   </label>
 
                   <span className="text-xs tabular-nums text-lavender-grey-500">
-                    {note.length}/500
+                    {note.length}/2000
                   </span>
                 </div>
 
@@ -402,7 +402,7 @@ export default function App() {
                       : "I tried buying skeleton spawners, but I got scammed and they blocked me immediately after."
                   }
                   rows={4}
-                  maxLength={500}
+                  maxLength={2000}
                   className="w-full resize-y rounded-xl border border-lavender-grey-300/50 bg-lavender-grey-100 px-4 py-3 text-sm leading-6 text-lavender-grey-900 outline-none transition placeholder:text-lavender-grey-500 focus:border-lavender-400 focus:ring-4 focus:ring-lavender-500/10"
                 />
               </div>
