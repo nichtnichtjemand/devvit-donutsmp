@@ -550,8 +550,8 @@ export default function App() {
                   <article
                     key={player.id}
                     className={`rounded-2xl border p-4 transition duration-200 hover:shadow-lg sm:p-5 ${isVouch
-                      ? "border-emerald-400/60 bg-emerald-50/80 hover:bg-emerald-50 text-emerald-950"
-                      : "border-rose-400/60 bg-rose-50/80 hover:bg-rose-50 text-rose-950"
+                      ? "border-green-100/30 bg-green-200/10 hover:bg-green-200/20 text-lavender-grey-900"
+                      : "border-soft-blush-300/30 bg-soft-blush-200/10 hover:bg-soft-blush-200/20 text-lavender-grey-900"
                       }`}
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
