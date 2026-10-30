@@ -459,7 +459,7 @@ export default function App() {
                   </button>
                 </div>
 
-                <p className="mt-2 text-xs text-lavender-grey-500 min-h-[48px] sm:min-h-[32px]">
+                <p className="mt-2 text-xs text-lavender-grey-500 min-h-12 sm:min-h-8">
                   {type === "vouch"
                     ? "Recommend a player based on a positive experience."
                     : "Describe a concern clearly and factually. Please note that we don't allow scamming. If you have proof for the scam, you can write a modmail to the moderators of r/DonutSMP with the link below."}
@@ -542,7 +542,7 @@ export default function App() {
               {success && (
                 <div
                   role="status"
-                  className="rounded-xl border border-thistle-300/40 bg-green-100 px-4 py-3 text-sm !text-black"
+                  className="rounded-xl border border-thistle-300/40 bg-green-100 px-4 py-3 text-sm text-black!"
                 >
                   {success}
                 </div>
@@ -689,7 +689,7 @@ export default function App() {
                           </span>
                         </div>
 
-                        <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 opacity-90">
+                        <p className="mt-1 whitespace-pre-wrap wrap-break-word text-sm leading-6 opacity-90">
                           {player.note}
                         </p>
                       </div>
