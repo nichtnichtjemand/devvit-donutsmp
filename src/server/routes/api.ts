@@ -160,6 +160,16 @@ api.post('/player', async (c) => {
     );
   }
 
+  if (note.length < 20) {
+    return c.json(
+      {
+        error:
+          'The description must be at least 20 characters long.',
+      },
+      400
+    );
+  }
+
   if (input.type !== 'vouch' && input.type !== 'report') {
     return c.json(
       { error: 'The type must be either vouch or report.' },
