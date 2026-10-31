@@ -319,7 +319,7 @@ export default function App() {
     });
 
   return (
-    <main className="min-h-screen bg-lavender-grey-100 px-4 py-10 text-lavender-grey-900 sm:px-6">
+    <main className="min-h-screen bg-reddit px-4 py-10 text-lavender-grey-900 sm:px-6">
       <div className="mx-auto max-w-5xl">
         {/* Header */}
         <header className="mb-10 text-center">
@@ -385,7 +385,7 @@ export default function App() {
               {/* Current user */}
               <div className="mb-5 text-sm font-semibold text-lavender-500">
                 {currentUser
-                  ? `Logged in as u/${currentUser}`
+                  ? ``
                   : "Could not load your Reddit account."}
               </div>
 
@@ -981,6 +981,7 @@ export default function App() {
               href="https://www.reddit.com/message/compose?to=r/DonutSMP"
               target="_blank"
               rel="noopener noreferrer"
+              style={{ color: "#ff4500" }}
             >
               {" "}write a modmail
             </a>.
