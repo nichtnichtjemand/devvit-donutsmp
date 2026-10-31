@@ -799,7 +799,7 @@ export default function App() {
               </h2>
 
               <p className="mt-1 text-sm text-lavender-grey-600">
-                Vouch for a player or report suspicious behavior.
+                Vouch for a player or report bad behavior.
               </p>
             </div>
 
