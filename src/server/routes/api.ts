@@ -101,7 +101,7 @@ api.post('/player', async (c) => {
 
   try {
     const targetUser = await reddit.getUserByUsername(username);
-    
+
     if (!targetUser) {
       return c.json(
         { error: `The Reddit user u/${username} does not exist.` },
@@ -115,7 +115,7 @@ api.post('/player', async (c) => {
     );
   }
 
-    try {
+  try {
     const currentSubreddit = await reddit.getCurrentSubreddit();
 
     const banList = await reddit.getBannedUsers({
@@ -345,7 +345,7 @@ api.get('/player/:username/summary', async (c) => {
   }
 });
 
-api.get('/me', async (c) => { 
+api.get('/me', async (c) => {
 
   let user: string | undefined;
   try {
@@ -364,7 +364,7 @@ api.get('/me', async (c) => {
     );
   }
   return c.json(
-    {user},
+    { user },
     200
   );
 });
