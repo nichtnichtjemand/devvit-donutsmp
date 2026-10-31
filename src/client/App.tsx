@@ -974,7 +974,6 @@ export default function App() {
 
         {/* Footer */}
         <footer className="py-8 text-center text-xs leading-6 text-lavender-grey-500">
-          <p>Built for the community, by the community.</p>
 
           <p className="mt-1">
             Please don't lie about your experiences. If you have any questions,
