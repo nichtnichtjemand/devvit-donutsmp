@@ -2051,9 +2051,7 @@ export default function App() {
             <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-bold">Admin Dashboard</h2>
-                <p className="mt-1 text-sm text-lavender-grey-600">Manage and permanently delete community entries.</p>
               </div>
-              <span className="w-fit rounded-full border border-lavender-400/30 bg-lavender-500/10 px-3 py-1 text-xs font-semibold text-lavender-600">Administrator</span>
             </div>
 
             {adminMessage && (
