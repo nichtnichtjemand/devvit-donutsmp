@@ -8,7 +8,7 @@ export default function Footer() {
             </h1>
 
             <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-lavender-grey-600 sm:text-lg">
-                Help the community with sharing your experiences!
+                Help the community by sharing your experiences!
             </p>
         </header>
     );
