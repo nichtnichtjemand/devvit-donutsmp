@@ -378,3 +378,46 @@ api.get('/me', async (c) => {
     200
   );
 });
+
+async function isUserAdmin(username: string): Promise<boolean> {
+  const allowedUsers = ['ziolo99', 'nichtnichtjemand'];
+  return allowedUsers.includes(username.toLowerCase());
+}
+
+api.get('/admin/verify', async (c) => {
+  try {
+    const currentUsername = await reddit.getCurrentUsername();
+    if (!currentUsername) return c.json({ isAdmin: false }, 401);
+
+    const isAdmin = await isUserAdmin(currentUsername);
+
+    return c.json({ isAdmin });
+  } catch {
+    return c.json({ isAdmin: false }, 500);
+  }
+});
+
+api.delete('/admin/player/:id', async (c) => {
+  const entryId = c.req.param('id');
+
+  try {
+    const currentUsername = await reddit.getCurrentUsername();
+    if (!currentUsername) return c.json({ error: 'Unauthorized.' }, 401);
+
+    const isAdmin = await isUserAdmin(currentUsername);
+
+    if (!isAdmin) {
+      return c.json({ error: 'Forbidden. Moderator rights required.' }, 403);
+    }
+
+    const deletedCount = await redis.hDel('players', [`entry:${entryId}`]);
+
+    if (deletedCount === 0) {
+      return c.json({ error: 'Entry not found.' }, 404);
+    }
+
+    return c.json({ success: true, message: 'Entry successfully deleted.' });
+  } catch {
+    return c.json({ error: 'Failed to delete entry.' }, 500);
+  }
+});

@@ -47,6 +47,9 @@ export default function App() {
   const [isOverviewOpen, setIsOverviewOpen] = useState(false);
   const [isAboutYouOpen, setIsAboutYouOpen] = useState(false);
   const [isMySubmissionsOpen, setIsMySubmissionsOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
+  const [adminMessage, setAdminMessage] = useState("");
 
   async function handlePlayerLookup(event: FormEvent) {
     event.preventDefault();
@@ -115,6 +118,31 @@ export default function App() {
     return () => {
       window.removeEventListener('click', handleGlobalClick);
     };
+  }, []);
+
+  useEffect(() => {
+    async function fetchCurrentUser() {
+      try {
+        const response = await fetch(`${API_URL}/me`);
+
+        if (!response.ok) {
+          throw new Error("Could not fetch current user.");
+        }
+
+        const data: { user: string } = await response.json();
+        setCurrentUser(data.user);
+
+        const adminResponse = await fetch(`${API_URL}/admin/verify`);
+        if (adminResponse.ok) {
+          const adminData: { isAdmin: boolean } = await adminResponse.json();
+          setIsAdmin(adminData.isAdmin);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    void fetchCurrentUser();
   }, []);
 
   const fetchPlayers = useCallback(async () => {
@@ -287,6 +315,45 @@ export default function App() {
       setSubmitting(false);
     }
   }
+
+  async function handleAdminDelete(id: string) {
+    if (!window.confirm("Are you sure you want to permanently delete this entry from the database?")) {
+      return;
+    }
+
+    setIsDeletingId(id);
+    setAdminMessage("");
+
+    try {
+      const response = await fetch(`${API_URL}/admin/player/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete the entry.");
+      }
+
+      setAdminMessage("Entry removed successfully.");
+
+      await fetchPlayers();
+
+      if (lookupResult) {
+        setLookupResult({
+          ...lookupResult,
+          entries: lookupResult.entries.filter(e => e.id !== id),
+          stats: {
+            ...lookupResult.stats,
+            total: lookupResult.stats.total - 1,
+          }
+        });
+      }
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "An error occurred.");
+    } finally {
+      setIsDeletingId(null);
+    }
+  }
+
 
   function formatDate(value: string) {
     const date = new Date(value);

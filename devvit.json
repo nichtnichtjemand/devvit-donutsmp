@@ -16,17 +16,6 @@
     "dir": "dist/server",
     "entry": "index.cjs"
   },
-  "menu": {
-    "items": [
-      {
-        "label": "Create a new post",
-        "description": "donutsmp-tool",
-        "location": "subreddit",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/post-create"
-      }
-    ]
-  },
   "scripts": {
     "dev": "vite build --watch",
     "build": "vite build"
