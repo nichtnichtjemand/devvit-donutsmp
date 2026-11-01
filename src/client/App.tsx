@@ -376,23 +376,6 @@ export default function App() {
     });
   }
 
-  const lookupVouches = (lookupResult?.entries ?? [])
-    .filter((entry) => entry.type === "vouch")
-    .sort((a, b) => {
-      const dateA = new Date(a.updatedAt).getTime() || 0;
-      const dateB = new Date(b.updatedAt).getTime() || 0;
-      return dateB - dateA;
-    });
-
-  const lookupReports = (lookupResult?.entries ?? [])
-    .filter((entry) => entry.type === "report")
-    .sort((a, b) => {
-      const dateA = new Date(a.updatedAt).getTime() || 0;
-      const dateB = new Date(b.updatedAt).getTime() || 0;
-      return dateB - dateA;
-    });
-
-
   return (
     <main className="min-h-screen bg-reddit px-4 py-10 text-lavender-grey-900 sm:px-6">
       <div className="mx-auto max-w-5xl">
