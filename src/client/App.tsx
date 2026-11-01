@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 
 import { requestExpandedMode } from '@devvit/web/client';
 
-
+import Footer from "./components/Footer";
 
 type EntryType = "vouch" | "report";
 
@@ -2108,34 +2108,7 @@ export default function App() {
         )}
 
         {/* Footer */}
-
-        <footer className="py-8 text-center text-xs leading-6 text-lavender-grey-500">
-
-
-
-          <p className="mt-1">
-
-            Please don't lie about your experiences. If you have any questions,
-
-            <a
-
-              href="https://www.reddit.com/message/compose?to=r/DonutSMP"
-
-              target="_blank"
-
-              rel="noopener noreferrer"
-
-              style={{ color: "#ff4500" }}
-
-            >
-
-              {" "}write a modmail
-
-            </a>.
-
-          </p>
-
-        </footer>
+        <Footer />
 
       </div>
 
