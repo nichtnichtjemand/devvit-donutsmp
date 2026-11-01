@@ -1,4 +1,20 @@
-node_modules
-.DS_Store
-dist
+node_modules/
+dist/
+
+# Local environment and secrets
 .env
+.env.*
+!.env.example
+
+# Logs and test output
+*.log
+coverage/
+
+# Tool caches and generated metadata
+.eslintcache
+.vite/
+*.tsbuildinfo
+
+# Operating-system files
+.DS_Store
+Thumbs.db
