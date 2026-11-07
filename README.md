@@ -3,13 +3,11 @@
 ## What it is
 ### This should be a Devvit App for the Reddit Subreddit r/DonutSMP where I am moderator. It is able to process vouches and reports on other users so you know who you can trust and who not.
 ## How it works
-#### If you have Devvit set up, you can just clone the repository and run `devvit playtest`. It tells you some stuff, and it should get an own private test subreddit. 
 
-You can check it out live (here)[https://www.reddit.com/r/donutsmp_tool_dev/comments/1xjqgih/donutsmptool/]
+You can check it out live here: https://www.reddit.com/r/donutsmp_tool_dev/comments/1xjqgih/donutsmptool/
 
 ## Features
 - Vouching and Reporting other Players
-- 
 <img width="701" height="499" alt="image" src="https://github.com/user-attachments/assets/d9baca87-7f63-4af3-a85e-78d75424f554" />
 
 - An admin panel for mods to delete entries
@@ -28,3 +26,20 @@ You can check it out live (here)[https://www.reddit.com/r/donutsmp_tool_dev/comm
 Here is a small example video of it running. There, you can see the functionality and admin panel:
 
 https://github.com/user-attachments/assets/1fc4777e-2671-43b7-b7e5-2882fea02f18
+
+## Why I did this
+I wanted to find a solution for a problem: Finding trustworthy people. Currently we have in r/DonutSMP a Megathread for Vouching people, but that can't be the way to go. So I developed a system to do it automatically! That's it, and I think it turned out very good.
+
+## How to run it yourself
+1. Set up Devvit (Windows)
+```
+npm install -g devvit
+devvit login
+```
+2. Start it
+```
+devvit playtest
+```
+
+## Contributing
+Feel free to create an issue or PR if you want to change something, everything is welcome!
