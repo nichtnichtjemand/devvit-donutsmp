@@ -11,6 +11,7 @@ You can check it out live (here)[https://www.reddit.com/r/donutsmp_tool_dev/comm
 - Vouching and Reporting other Players
 - 
 <img width="701" height="499" alt="image" src="https://github.com/user-attachments/assets/d9baca87-7f63-4af3-a85e-78d75424f554" />
+
 - An admin panel for mods to delete entries
 <img width="707" height="315" alt="image" src="https://github.com/user-attachments/assets/10cecd75-c27a-4ccc-a18a-61bc8cc53dbb" />
 
